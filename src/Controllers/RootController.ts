@@ -9,23 +9,29 @@
         public static get $inject(): string[] {
             return [
                 "$scope",
+                "$window",
                 "$location",
                 "$http",
+                "$ionicSideMenuDelegate",
                 Services.Plugins.ID,
                 Services.Utilities.ID,
                 Services.UiHelper.ID,
-                Services.Preferences.ID
+                Services.Preferences.ID,
+                Services.Configuration.ID
             ];
         }
 
         constructor(
             $scope: ng.IScope,
+            private $window: Window,
             private $location: ng.ILocationService,
             private $http: ng.IHttpService,
+            private $ionicSideMenuDelegate: any,
             private Plugins: Services.Plugins,
             private Utilities: Services.Utilities,
             private UiHelper: Services.UiHelper,
-            private Preferences: Services.Preferences) {
+            private Preferences: Services.Preferences,
+            private Configuration: Services.Configuration) {
             super($scope, ViewModels.RootViewModel);
         }
 
@@ -53,8 +59,10 @@
             this.scope.$on(Constants.Events.HTTP_NOT_FOUND, _.bind(this.http_notFound, this));
             this.scope.$on(Constants.Events.HTTP_UNKNOWN_ERROR, _.bind(this.http_unknownError, this));
             this.scope.$on(Constants.Events.HTTP_ERROR, _.bind(this.http_error, this));
-
+            this.scope.$on(Constants.Events.BEGIN_ONBOARDING, _.bind(this.begin_onboarding, this));
+            this.scope.$on(Constants.Events.END_ONBOARDING, _.bind(this.end_onboarding, this));
             this.viewModel.categories = this.Utilities.categories;
+
         }
 
         //#endregion
@@ -95,6 +103,32 @@
          */
         private http_error(event: ng.IAngularEvent, response: ng.IHttpPromiseCallbackArg<any>): void {
             this.Plugins.toast.showLongBottom("An error has occurred; please try again.");
+        }
+
+        private begin_onboarding(): void {
+            console.log("begin onboarding");
+            this.Configuration.hasCompletedOnboarding = false;
+            this.viewModel.isOnboarding = true;
+            if (!this.scope.$$phase) {
+                this.scope.$apply();
+            }
+            this.$ionicSideMenuDelegate.toggleLeft();
+            this.$ionicSideMenuDelegate.toggleLeft();
+            this.$ionicSideMenuDelegate._instances[0].exposeAside(this.$window.matchMedia(this.viewModel.sideMenuMediaQuery).matches);
+            this.$ionicSideMenuDelegate.canDragContent(false);
+        }
+
+        private end_onboarding(): void {
+            console.log("end onboarding");
+            this.Configuration.hasCompletedOnboarding = true;
+            this.viewModel.isOnboarding = false;
+            if (!this.scope.$$phase) {
+                this.scope.$apply();
+            }
+            this.$ionicSideMenuDelegate.toggleLeft();
+            this.$ionicSideMenuDelegate.toggleLeft();
+            this.$ionicSideMenuDelegate._instances[0].exposeAside(this.$window.matchMedia(this.viewModel.sideMenuMediaQuery).matches);
+            this.$ionicSideMenuDelegate.canDragContent(true);
         }
 
         //#endregion

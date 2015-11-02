@@ -497,7 +497,7 @@ module JustinCredible.SampleApp.Application {
 
                 return;
             }
-
+            
             // If the user is still at the blank sreen, then push them to their default view.
             if (services.$location.url() === "/app/blank") {
 
