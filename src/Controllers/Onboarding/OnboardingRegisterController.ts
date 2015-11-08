@@ -125,17 +125,8 @@ module JustinCredible.SampleApp.Controllers {
 
         protected skip_click(): void {
 
-            // Set the preference value so onboarding doesn't occur again.
-            this.Configuration.hasCompletedOnboarding = true;
-
-            // Tell Ionic to to hide the back button for the next view.
-            this.$ionicHistory.nextViewOptions({
-                disableBack: true
-            });
-
-            // Navigate the user to their default view.
-            this.$location.path(this.Utilities.defaultCategory.href.substring(1));
-            this.$location.replace();
+            // Inform the RootController to end onboarding
+            this.scope.$emit(Constants.Events.END_ONBOARDING);
         }
 
         //#endregion

@@ -12,6 +12,7 @@
                 "$window",
                 "$location",
                 "$http",
+                "$ionicHistory",
                 "$ionicSideMenuDelegate",
                 Services.Plugins.ID,
                 Services.Utilities.ID,
@@ -26,6 +27,7 @@
             private $window: Window,
             private $location: ng.ILocationService,
             private $http: ng.IHttpService,
+            private $ionicHistory: any,
             private $ionicSideMenuDelegate: any,
             private Plugins: Services.Plugins,
             private Utilities: Services.Utilities,
@@ -105,30 +107,39 @@
             this.Plugins.toast.showLongBottom("An error has occurred; please try again.");
         }
 
+        /**
+         * An event listerer to hide the left side menu during onboarding.
+         * A child like OnboardingSplashController fires this event, like so,
+         * this.scope.$emit(Constants.Events.BEGIN_ONBOARDING);
+         */
         private begin_onboarding(): void {
-            console.log("begin onboarding");
             this.Configuration.hasCompletedOnboarding = false;
             this.viewModel.isOnboarding = true;
-            if (!this.scope.$$phase) {
-                this.scope.$apply();
-            }
-            this.$ionicSideMenuDelegate.toggleLeft();
-            this.$ionicSideMenuDelegate.toggleLeft();
-            this.$ionicSideMenuDelegate._instances[0].exposeAside(this.$window.matchMedia(this.viewModel.sideMenuMediaQuery).matches);
             this.$ionicSideMenuDelegate.canDragContent(false);
         }
 
+        /**
+         * An event listener to un-hide the left side and navigate to the default view,
+         * after onboarding ends. A child like OnboardingSplashController fires this event,
+         * like so, this.scope.$emit(Constants.Events.END_ONBOARDING);
+         */
         private end_onboarding(): void {
-            console.log("end onboarding");
             this.Configuration.hasCompletedOnboarding = true;
             this.viewModel.isOnboarding = false;
-            if (!this.scope.$$phase) {
-                this.scope.$apply();
-            }
-            this.$ionicSideMenuDelegate.toggleLeft();
-            this.$ionicSideMenuDelegate.toggleLeft();
-            this.$ionicSideMenuDelegate._instances[0].exposeAside(this.$window.matchMedia(this.viewModel.sideMenuMediaQuery).matches);
+
+            // Expose the side menu in a tablet
+            var isTablet = this.$window.matchMedia(this.viewModel.sideMenuMediaQuery).matches;
+            this.$ionicSideMenuDelegate._instances[0].exposeAside(isTablet); // sigh
             this.$ionicSideMenuDelegate.canDragContent(true);
+
+            // Tell Ionic to to hide the back button for the next view.
+            this.$ionicHistory.nextViewOptions({
+                disableBack: true
+            });
+
+            // Navigate the user to their default view.
+            this.$location.path(this.Utilities.defaultCategory.href.substring(1));
+            this.$location.replace();
         }
 
         //#endregion
